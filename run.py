@@ -146,9 +146,17 @@ def connected():
             mode = 'w'  # set mode to write to existing file
         else:
             mode = 'x'  # set mode to create new file
-        with open(filename, mode,encoding=encode) as f:
+        with open(filename, mode, encoding=encode) as f:
             f.write(text)
         response = os.popen("sdusrun.exe login -c a.json").read()
+        for line in response.splitlines():
+            if 'online_ip' in line:
+                line = line.replace('online_ip', '')
+                line = line.replace(' ', '')
+                line = line.replace('\n', '')
+                line = line.replace(',', '')
+                line = line.replace('"', '')
+                return line
 
 import socket
 
@@ -157,6 +165,7 @@ if __name__ == '__main__':
     cookieLose = False
     workNull = False
     code414 = False
+    ip = ''
     dir = 'Z:\\Distributed\\'
     co = read_specific_line(dir + "cookies.txt", index)
     ID = ''.join(random.choice(string.ascii_letters) for _ in range(10))
@@ -164,7 +173,7 @@ if __name__ == '__main__':
     print('**********************************')
     while True:
         time.sleep(1)
-        connected()
+        ip = connected()
         if not read_cookies(co[0],co[1]):
             if not cookieLose:
                 print('cookie失效')
@@ -187,7 +196,7 @@ if __name__ == '__main__':
                     continue
                 else:
                     workNull = False
-                print('ID: ', ID + ' 任务: ', first_line)
+                print('ID: ', ID + ' IP: ' + ip + ' 任务: ', first_line)
 
             recode = be('tweet_by_user_id',first_line,'0','0','0',co[1])
             if recode[0] >= 4 and recode[1] == 2:
