@@ -7,6 +7,9 @@ import subprocess
 import requests
 import string
 import random
+import time
+import threading
+import re
 
 
 dir = '/mnt/hgfs/Distributed/'
@@ -41,6 +44,8 @@ netId = ['32309233','225310',
 '32309277','060535',
 '32309265','085138',
 '32309169','237318']
+MAXthread = threading.Semaphore(2)
+
 
 def find_files_starting(directory,n,ip=False):
     out = []
@@ -106,7 +111,7 @@ def read_cookies(uname, f):
     return html_t.find(uname) != -1
 
 def be(mode,keywords,start_time,end_time,proxy,cookie):
-    code414 = 0
+    code = {}
     codaHttps = 0
     text = '''def set():
     return{'''
@@ -114,23 +119,23 @@ def be(mode,keywords,start_time,end_time,proxy,cookie):
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     text = text +  ''''mode':'{}','keywords':'{}','end_time':'{}','start_time':'{}','now':'{}','proxy':'{}','cookie':'{}' '''.format(mode,keywords,end_time,start_time,now,proxy,cookie) + '}'
     if os.path.exists(filename):
-        mode = 'w'  # set mode to write to existing file
+        Fmode = 'w'  # set mode to write to existing file
     else:
-        mode = 'x'  # set mode to create new file
-    with open(filename, mode,encoding=encode) as f:
+        Fmode = 'x'  # set mode to create new file
+    with open(filename, Fmode ,encoding=encode) as f:
         f.write(text)
     
-    filename= dir + "output/{}.txt".format(now)
+    filename= dir + "output/{}_{}_{}_{}_{}.txt".format(keywords,end_time,start_time,now,mode)
     text = mode+" "+keywords+" "+start_time+" "+end_time+" "+now+" "+proxy+" "+cookie
     if os.path.exists(filename):
-        mode = 'w'  # set mode to write to existing file
+        Fmode = 'w'  # set mode to write to existing file
     else:
-        mode = 'x'  # set mode to create new file
-    with open(filename, mode,encoding=encode) as f:
+        Fmode = 'x'  # set mode to create new file
+    with open(filename, Fmode,encoding=encode) as f:
         f.write(text)
     # 定义要运行的命令
     command = ['python3', 'run_spider.py']
-    filename= dir + "output/{}.log".format(now)
+    filename = filename.replace('txt','log')
     # 打开一个文件来保存输出
     with open(filename, 'w',encoding=encode) as f:
         # 运行命令并将输出写入文件
@@ -140,18 +145,24 @@ def be(mode,keywords,start_time,end_time,proxy,cookie):
         for line in iter(process.stdout.readline, b''):
             de = line.decode(encode2)
             f.write(de)
-            if '414' in de:
-                code414 = code414 + 1
-            if 'https' in de:
+            if 'Crawled' in de:
                 codaHttps = codaHttps + 1
-            # print(de, end='')
-    # 等待命令运行完成
+                de = de.split('<')[0]
+                de = de.split('Crawled')[1]
+                de = de.replace(' ','')
+                de = de.replace('(','')
+                de = de.replace(')','')
+                if len(de) <5:
+                    if de in code:
+                        code[de] = code[de] + 1
+                    else:
+                        code[de] = 1
     process.wait()
-    return [code414,codaHttps]
+    return [code,codaHttps]
 
 def ping_website(website):
     try:
-        output = subprocess.check_output("ping -c 1 " + website, shell=True)
+        output = subprocess.check_output("ping -c 1 -w 1 " + website, shell=True)
         output = output.decode("utf-8")
 
         if "1 packets transmitted, 1 received" in output:
@@ -159,17 +170,26 @@ def ping_website(website):
         else:
             return False
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print("没有互联网连接")
         return False
-    
+
+def find_ipv4_addresses(string):
+    pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+    for i in re.findall(pattern, string):
+        if i != '127.0.0.1':
+            return i
+        
 def connected(ID):
     response = ping_website("weibo.com")
     if response == False:
         random_int = random.randint(0, 29)  # 生成0至30的随机整数
-        print("尝试登录校园网",ID)
+        print("尝试登录校园网 U&P: ",netId[random_int*2],netId[random_int*2+1])
+        output = subprocess.check_output("ip a", shell=True)
+        output = output.decode("utf-8")
+        innerIP = find_ipv4_addresses(output)
         filename = "./temp/" + ID + ".json"
         text = '''{"server":"http://172.31.99.50","strict_bind":false,"double_stack":false,"retry_delay":300,"retry_times":1,"n":200,"type":1,"acid":4,"os":"Windows","name":"Windows98","users":[{"username":"'''
-        text = text + '''{}","password":"{}","ip":"{}'''.format(netId[random_int*2],netId[random_int*2+1],socket.gethostbyname(socket.gethostname()))
+        text = text + '''{}","password":"{}","ip":"{}'''.format(netId[random_int*2],netId[random_int*2+1],innerIP)
         text = text + '''"}]}'''
         if os.path.exists(filename):
             mode = 'w'  # set mode to write to existing file
@@ -182,24 +202,32 @@ def connected(ID):
 
 def get_data_from_api():
     try:
-        response = requests.get("https://www.ipplus360.com/getIP")
+        response = requests.get("https://www.ipplus360.com/getIP",timeout=(2,3))
         data = response.json()
         return data['data']
     except Exception as e:
-        print("获取IP失败: ",e)
+        print("获取IP失败")
         return None
+    
+def task(first_line,co,ip,ID):
+    recode = be('tweet_by_user_id',first_line,'0','0','0',co[1])
+    print('ID:', ID + ' IP: ' + ip + ' 任务: ', first_line, ' 结果: ', recode)
+    if '414' in recode[0]:
+        print('414错误 120s后重试')
+        time.sleep(120)
+    MAXthread.release()
+
 if __name__ == '__main__':
     index = int(sys.argv[1])
     cookieLose = False
     ipccupy = False
     workNull = False
-    code414 = False
     ip = ''
     co = read_specific_line(dir + "cookies.txt", index)
     ID = str(index)
     print('**********************************')
     while True:
-        time.sleep(1)
+        time.sleep(2)
         connected(ID)
         ip = get_data_from_api()
         if ip == None:
@@ -233,27 +261,19 @@ if __name__ == '__main__':
             cookieLose = False
         first_line = ''
         if find_files_starting(dir,0) == []:
-            if not code414:
-                with open(dir + '0_' + ID, 'w') as f:
-                    pass
-                first_line = read_and_delete_first_line(dir + 'works.txt')  # 读取并删除第一行        
-                os.remove(dir + '0_' + ID)
-                if first_line == False:
-                    if not workNull:
-                        print('无任务')
-                        workNull = True
-                    continue
-                else:
-                    workNull = False
-                print('ID:', ID + ' IP: ' + ip + ' 任务: ', first_line)
-
-            recode = be('tweet_by_user_id',first_line,'0','0','0',co[1])
-            if recode[0] >= 4 and recode[1] == 2:
-                if not code414:
-                    print('414错误 63s后重试')
-                    code414 = True
-                time.sleep(63)
+            with open(dir + '0_' + ID, 'w') as f:
+                pass
+            first_line = read_and_delete_first_line(dir + 'works.txt')  # 读取并删除第一行        
+            os.remove(dir + '0_' + ID)
+            if first_line == False:
+                if not workNull:
+                    print('无任务')
+                    workNull = True
+                continue
             else:
-                code414 = False
+                workNull = False
+            MAXthread.acquire()
+            print('ID:', ID + ' IP: ' + ip + ' 任务: ', first_line)
+            t1 = threading.Thread(target=task, args=(first_line,co,ip,ID)).start()
         else:
             print('有未完成任务')

@@ -19,9 +19,9 @@ class JsonWriterPipeline(object):
         """
         处理item
         """
-        now = set.set()['now']
+        i = set.set()
         if not self.file:
-            file_name = now + "_" + spider.name + '.jsonl'
+            file_name = i['keywords'] + "_" + i['end_time'] + "_" + i['start_time'] + "_" + i['now'] + "_" + spider.name + '.jsonl'
             self.file = open(f'../output/{file_name}', 'wt', encoding='utf-8')
         item['crawl_time'] = int(time.time())
         line = json.dumps(dict(item), ensure_ascii=False) + "\n"
