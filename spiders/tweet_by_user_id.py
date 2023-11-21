@@ -13,6 +13,8 @@ import sys
 sys.path.append("..")
 from temp import set
 s = set.set()
+import time
+import logging
 
 class TweetSpiderByUserID(Spider):
     """

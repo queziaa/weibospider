@@ -9,7 +9,10 @@ import json
 from scrapy import Spider
 from scrapy.http import Request
 from spiders.common import parse_tweet_info, url_to_mid
-
+import sys
+sys.path.append("..")
+from temp import set
+s = set.set()
 
 class RepostSpider(Spider):
     """
@@ -22,7 +25,7 @@ class RepostSpider(Spider):
         爬虫入口
         """
         # 这里tweet_ids可替换成实际待采集的数据
-        tweet_ids = ['Mb15BDYR0']
+        tweet_ids = [s['keywords']]
         for tweet_id in tweet_ids:
             mid = url_to_mid(tweet_id)
             url = f"https://weibo.com/ajax/statuses/repostTimeline?id={mid}&page=1&moduleID=feed&count=10"
