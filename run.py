@@ -14,37 +14,8 @@ import re
 
 dir = '/mnt/hgfs/Distributed/'
 encode='UTF-8'
-netId = ['32309233','225310',
-'32309168','13661X',
-'32309276','172357',
-'32309188','03001X',
-'32309268','040031',
-'32309203','300032',
-'32309178','063718',
-'32309228','202093',
-'32309242','170015',
-'32309186','183619',
-'32309205','150031',
-'32309252','243187',
-'32309218','121250',
-'32309254','100017',
-'32309223','026013',
-'32309211','273910',
-'32309199','183018',
-'32309215','130618',
-'32309278','273624',
-'32309204','131919',
-'32309209','116826',
-'32309212','160914',
-'32309222','165672',
-'32309271','102418',
-'32309182','262510',
-'32309200','27081X',
-'32309261','166713',
-'32309277','060535',
-'32309265','085138',
-'32309169','237318']
-MAXthread = threading.Semaphore(2)
+netId = ['32309233','225310','32309245','122957','32309248','170039','32309264','06061X','32309208','018335','32309258','154615','32309237','260047','32309168','13661X','32309276','172357','32309188','03001X','32309268','040031','32309203','300032','32309244','278114','32309178','063718','32309228','202093','32309242','170015','32309186','183619','32309205','150031','32309252','243187','32309218','121250','32309206','290219','32309254','100017','32309223','026013','32309225','272967','32309211','273910','32309199','183018','32309215','130618','32309278','273624','32309204','131919','32309209','116826','32309212','160914','32309222','165672','32309271','102418','32309182','262510','32309200','27081X','32309261','166713','32309277','060535','32309265','085138','32309195','084819','32309169','237318','32309227','091214','32309210','192019','32309251','261513','32309250','101834','32309189','242473','32309247','22541X','32309275','013713','32309272','100554','32309235','02551X','32309196','146812','32309187','190616','32309197','221212','32309207','17305X','32309201','275415','32309262','174199','32309190','080140','32309243','300310','32309192','231029','32309193','252724','32309263','023910','32309226','132617','32309177','073011','32309219','047346','32309230','100626','32309231','110031','32309234','113032','32309279','296915','32309260','032822','32309236','306413','32309238','270512','32309213','034413','32309172','260599','32309273','290627','32309166','050051','32309246','30771X','32309221','104221','32309255','031130','32309176','141013','32309185','284514','32309240','203515','32309202','010010','32309171','284671','32309266','231198','32309198','300513','32309170','109391','32309253','134767','32309175','123875','32309165','220023','32309224','062532','32309229','120119','32309184','060011','32309217','015619','32309174','087819','32309269','270010','32309256','105228','32309274','256109','32309257','081213','32309180','173916','32309194','031212','32309267','143919','32309191','230075','32309259','146410','32309181','160261','32309249','106036','32309214','08131X','32309220','22071X','32309270','096625','32309179','010025','32309239','246640','32309216','141019','32309183','291614','32309173','261213','32309232','080013','32309167','112028']
+MAXthread = threading.Semaphore(1)
 
 
 def find_files_starting(directory,n,ip=False):
@@ -80,6 +51,10 @@ def read_and_delete_first_line(filename):
 
 
 def read_specific_line(filename, line_number):
+    line_number = line_number%4
+    if line_number == 0:
+        line_number = 4
+    line_number = (line_number - 1) * 2 + 1
     with open(filename, 'r',encoding=encode) as file:
         lines = file.readlines()
         return [lines[line_number - 1].strip(),lines[line_number].strip()]
@@ -157,6 +132,8 @@ def be(mode,keywords,start_time,end_time,proxy,cookie):
                         code[de] = code[de] + 1
                     else:
                         code[de] = 1
+        #将网络结果code写入文件
+        f.write(str(code))
     process.wait()
     return [code,codaHttps]
 
@@ -170,7 +147,7 @@ def ping_website(website):
         else:
             return False
     except Exception as e:
-        print("没有互联网连接")
+        print("No Internet connection")
         return False
 
 def find_ipv4_addresses(string):
@@ -182,8 +159,8 @@ def find_ipv4_addresses(string):
 def connected(ID):
     response = ping_website("weibo.com")
     if response == False:
-        random_int = random.randint(0, 29)  # 生成0至30的随机整数
-        print("尝试登录校园网 U&P: ",netId[random_int*2],netId[random_int*2+1])
+        random_int = random.randint(0, len(netId)/2-1)
+        print("Attempting to log in to the campus network U&P: ",netId[random_int*2],netId[random_int*2+1])
         output = subprocess.check_output("ip a", shell=True)
         output = output.decode("utf-8")
         innerIP = find_ipv4_addresses(output)
@@ -206,14 +183,14 @@ def get_data_from_api():
         data = response.json()
         return data['data']
     except Exception as e:
-        print("获取IP失败")
+        print("Failed to obtain IP address BY http API")
         return None
     
 def task(first_line,co,ip,ID):
     recode = be('tweet_by_user_id',first_line,'0','0','0',co[1])
-    print('ID:', ID + ' IP: ' + ip + ' 任务: ', first_line, ' 结果: ', recode)
+    print('ID:', ID + ' IP: ' + ip + ' Task: ', first_line, ' result: ', recode)
     if '414' in recode[0]:
-        print('414错误 120s后重试')
+        print('414 error 120s retry')
         time.sleep(120)
     MAXthread.release()
 
@@ -235,7 +212,7 @@ if __name__ == '__main__':
         temp = find_files_starting(dir,index)
         if temp != []:
             if len(temp) > 1:
-                print('错误: ID:' + ID + ' 有多个IP文件')
+                print('error: ID:' + ID + ' This ID has multiple IP files')
                 exit()
             temp = temp[0]
             os.remove(dir + temp)         
@@ -244,7 +221,7 @@ if __name__ == '__main__':
         temp = find_files_starting(dir,index,ip=ip)
         if temp != []:
             if not ipccupy:
-                print('IP ',ip,' 已被占用')
+                print('IP ',ip,' Already occupied')
                 ipccupy = True
             continue
         else:
@@ -252,7 +229,7 @@ if __name__ == '__main__':
 
         if not read_cookies(co[0],co[1]):
             if not cookieLose:
-                print('cookie失效 10s后重试')
+                print('Cookie fails after 10s retry')
                 time.sleep(10)
                 cookieLose = True
             co = read_specific_line(dir + "cookies.txt", index)
@@ -267,13 +244,13 @@ if __name__ == '__main__':
             os.remove(dir + '0_' + ID)
             if first_line == False:
                 if not workNull:
-                    print('无任务')
+                    print('No task')
                     workNull = True
                 continue
             else:
                 workNull = False
             MAXthread.acquire()
-            print('ID:', ID + ' IP: ' + ip + ' 任务: ', first_line)
+            print('ID:', ID + ' IP: ' + ip + ' Task: ', first_line)
             t1 = threading.Thread(target=task, args=(first_line,co,ip,ID)).start()
         else:
-            print('有未完成任务')
+            print('Other programs after reading the task list, review after 5 seconds')
