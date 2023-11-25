@@ -12,7 +12,7 @@ date_format = "%Y%m%d"
 start = datetime.datetime.strptime(start_date, date_format)
 end = datetime.datetime.strptime(end_date, date_format)
 
-with open('work.txt', 'w',encoding='UTF-8') as f:
+with open('works.txt', 'w',encoding='UTF-8') as f:
     while start < end:
         next_day = start + datetime.timedelta(days=1)
         f.write(f"tweet_by_keyword@{WWW_1}/{start.strftime(date_format)}00/{next_day.strftime(date_format)}00\n")
