@@ -206,25 +206,23 @@ def find_ipv4_addresses(string):
             return i
         
 def connected(ID):
-    response = ping_website("weibo.com")
-    if response == False:
-        random_int = random.randint(0, len(netId)/2-1)
-        print("@@@Attempting to log in to the campus network U&P: ",netId[random_int*2],netId[random_int*2+1])
-        output = subprocess.check_output("ip a", shell=True)
-        output = output.decode("utf-8")
-        innerIP = find_ipv4_addresses(output)
-        filename = "./temp/" + ID + ".json"
-        text = '''{"server":"http://172.31.99.50","strict_bind":false,"double_stack":false,"retry_delay":300,"retry_times":1,"n":200,"type":1,"acid":4,"os":"Windows","name":"Windows98","users":[{"username":"'''
-        text = text + '''{}","password":"{}","ip":"{}'''.format(netId[random_int*2],netId[random_int*2+1],innerIP)
-        text = text + '''"}]}'''
-        if os.path.exists(filename):
-            mode = 'w'  # set mode to write to existing file
-        else:
-            mode = 'x'  # set mode to create new file
-        with open(filename, mode, encoding=encode) as f:
-            f.write(text)
-        response = os.popen("./sdusrun1 login -c " + filename).read()
-        return response
+    random_int = random.randint(0, len(netId)/2-1)
+    print("@@@Attempting to log in to the campus network U&P: ",netId[random_int*2],netId[random_int*2+1])
+    output = subprocess.check_output("ip a", shell=True)
+    output = output.decode("utf-8")
+    innerIP = find_ipv4_addresses(output)
+    filename = "./temp/" + ID + ".json"
+    text = '''{"server":"http://172.31.99.50","strict_bind":false,"double_stack":false,"retry_delay":300,"retry_times":1,"n":200,"type":1,"acid":4,"os":"Windows","name":"Windows98","users":[{"username":"'''
+    text = text + '''{}","password":"{}","ip":"{}'''.format(netId[random_int*2],netId[random_int*2+1],innerIP)
+    text = text + '''"}]}'''
+    if os.path.exists(filename):
+        mode = 'w'  # set mode to write to existing file
+    else:
+        mode = 'x'  # set mode to create new file
+    with open(filename, mode, encoding=encode) as f:
+        f.write(text)
+    response = os.popen("./sdusrun1 login -c " + filename).read()
+    return response
 
 def get_data_from_api():
     try:
@@ -265,27 +263,34 @@ if __name__ == '__main__':
     while True:
         MAXthread.acquire()
         time.sleep(2)
-        connected(ID)
+        if ping_website("weibo.com") == False:
+            print('@@@No Internet connection')
+            connected(ID)
+            time.sleep(5)
+            MAXthread.release()
+            continue
+
         ip = get_data_from_api()
         if ip == None:
             MAXthread.release()
             continue
-        temp = find_files_starting(dir,index)
+        
+        ipFile = find_files_starting(dir,index)
         filedir = ID + "_" + ip
-        if temp != []:
-            if len(temp) > 1:
+        if ipFile != []:
+            if len(ipFile) > 1:
                 print('@@@error: ID:' + ID + ' This ID has multiple IP files')
                 exit()
-            temp = temp[0]
-            if temp != filedir:
-                os.remove(dir + temp)         
+            ipFile = ipFile[0]
+            if ipFile != filedir:
+                os.remove(dir + ipFile)         
                 with open(dir + filedir, 'w') as f:
                         pass
         else:
             with open(dir + filedir, 'w') as f:
                     pass
-        temp = find_files_starting(dir,index,ip=ip)
-        if temp != []:
+        
+        if find_files_starting(dir,index,ip=ip) != []:
             if not ipccupy:
                 print('@@@IP ',ip,' Already occupied')
                 ipccupy = True
