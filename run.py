@@ -268,6 +268,7 @@ if __name__ == '__main__':
         connected(ID)
         ip = get_data_from_api()
         if ip == None:
+            MAXthread.release()
             continue
         temp = find_files_starting(dir,index)
         filedir = ID + "_" + ip
@@ -287,21 +288,24 @@ if __name__ == '__main__':
         if temp != []:
             if not ipccupy:
                 print('@@@IP ',ip,' Already occupied')
-                time.sleep(5)
                 ipccupy = True
+            time.sleep(5)
+            MAXthread.release()
             continue
         else:
             ipccupy = False
-
+        
         if not read_cookies(co[0],co[1]):
             if not cookieLose:
                 print('@@@Cookie fails after 10s retry')
-                time.sleep(10)
                 cookieLose = True
+            time.sleep(10)
             co = read_specific_line(dir + "cookies.txt", index)
+            MAXthread.release()
             continue
         else:
             cookieLose = False
+        
         first_line = ''
         if find_files_starting(dir,0) == []:
             with open(dir + '0_' + ID, 'w') as f:
@@ -312,9 +316,11 @@ if __name__ == '__main__':
                 if not workNull:
                     print('@@@No task')
                     workNull = True
+                MAXthread.release()
                 continue
             else:
                 workNull = False
+            
             first_line = first_line.split('@')
             Wmode = first_line[0]
             keyWord = first_line[1]
