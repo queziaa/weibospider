@@ -242,9 +242,9 @@ def task(Wmode,keyWord,co,ip,ID):
         end_time = keyWord[2]
         keyWord = keyWord[0]
     recode = be(Wmode,keyWord,start_time,end_time,'0',co[1])
-    print('@@@ID:', ID + ' IP: ' + ip + ' Task: ', first_line,'mode: ', Wmode, ' result: ', recode)
+    print('@@@ID:', ID + ' IP: ' + ip + ' Task: ', first_line,'mode: ', Wmode, ' result: ', recode,' thread: ',MAXthread._value)
     if '414' in recode[0]:
-        print('@@@414 error 120s retry')
+        print('@@@414 error 120s retry',' thread: ',MAXthread._value)
         time.sleep(120)
     MAXthread.release()
 
@@ -264,7 +264,7 @@ if __name__ == '__main__':
         MAXthread.acquire()
         time.sleep(2)
         if ping_website("weibo.com") == False:
-            print('@@@No Internet connection')
+            print('@@@No Internet connection',' thread: ',MAXthread._value)
             connected(ID)
             time.sleep(5)
             MAXthread.release()
@@ -279,7 +279,7 @@ if __name__ == '__main__':
         filedir = ID + "_" + ip
         if ipFile != []:
             if len(ipFile) > 1:
-                print('@@@error: ID:' + ID + ' This ID has multiple IP files')
+                print('@@@error: ID:' + ID + ' This ID has multiple IP files',' thread: ',MAXthread._value)
                 exit()
             ipFile = ipFile[0]
             if ipFile != filedir:
@@ -292,7 +292,7 @@ if __name__ == '__main__':
         
         if find_files_starting(dir,index,ip=ip) != []:
             if not ipccupy:
-                print('@@@IP ',ip,' Already occupied')
+                print('@@@IP ',ip,' Already occupied',' thread: ',MAXthread._value)
                 ipccupy = True
             time.sleep(5)
             MAXthread.release()
@@ -302,7 +302,7 @@ if __name__ == '__main__':
         
         if not read_cookies(co[0],co[1]):
             if not cookieLose:
-                print('@@@Cookie fails after 10s retry')
+                print('@@@Cookie fails after 10s retry',' thread: ',MAXthread._value)
                 cookieLose = True
             time.sleep(10)
             co = read_specific_line(dir + "cookies.txt", index)
@@ -319,7 +319,7 @@ if __name__ == '__main__':
             os.remove(dir + '0_' + ID)
             if first_line == False:
                 if not workNull:
-                    print('@@@No task')
+                    print('@@@No task',' thread: ',MAXthread._value)
                     workNull = True
                 MAXthread.release()
                 continue
@@ -329,9 +329,9 @@ if __name__ == '__main__':
             first_line = first_line.split('@')
             Wmode = first_line[0]
             keyWord = first_line[1]
-            print('@@@ID:', ID + ' IP: ' + ip + ' Task: ', keyWord, 'mode: ', Wmode)
+            print('@@@ID:', ID + ' IP: ' + ip + ' Task: ', keyWord, 'mode: ', Wmode,' thread: ',MAXthread._value)
             t1 = threading.Thread(target=task, args=(Wmode,keyWord,co,ip,ID)).start()
             # task(Wmode,keyWord,co,ip,ID)
         else:
-            print('@@@Other programs after reading the task list, review after 5 seconds')
+            print('@@@Other programs after reading the task list, review after 5 seconds',' thread: ',MAXthread._value)
             time.sleep(5)
