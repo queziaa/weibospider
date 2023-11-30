@@ -39,34 +39,34 @@ def find_files_starting(directory,n,ip=False):
                 out.append(f)
     return out
 
-def read_and_delete_first_line(dir):
+def read_and_delete_first_line(dir,log):
     global work_filesSet
     if work_filesSet == []:
         for item in os.listdir(dir):
             if os.path.isfile(os.path.join(dir, item)) and item.startswith('work'):
                 work_filesSet.append(dir + item)
     if not work_filesSet:
-        print("@@@No 'works' files found.")
+        print("@@@No 'works' files found.",log)
         return False
     filename = random.choice(work_filesSet)
     if not os.path.exists(filename):
         work_filesSet.remove(filename)
-        print("@@@File", filename, "has been removed.")
+        print("@@@File", filename, "has been removed.",log)
         return False
-    print("@@@Reading file", filename)
+    print("@@@Reading file", filename,log)
     with open(filename, 'r',encoding=encode) as file:
         lines = file.readlines()
     if not lines or not lines[0].strip():
-        print("@@@The first line is empty.")
+        print("@@@The first line is empty.",log)
         if len(lines) == 0:  # the file is empty after removing the first line
             os.remove(filename)
-            print(f"@@@File {filename} has been removed.")
+            print(f"@@@File {filename} has been removed.",log)
             return False
         else:
             lines.pop(0)  # remove the first line
             with open(filename, 'w',encoding=encode) as file:
                 file.writelines(lines)
-            print('@@@Delete blank line')
+            print('@@@Delete blank line',log)
             return False
         
     with open(filename, 'r',encoding=encode) as file:
@@ -316,7 +316,8 @@ if __name__ == '__main__':
         if find_files_starting(dir,0) == []:
             with open(dir + '0_' + ID, 'w') as f:
                 pass
-            first_line = read_and_delete_first_line(dir)  # 读取并删除第一行        
+            logtemp = ' thread: ' + str(MAXthread._value) + '-' + str(MAXthreadVALUE)
+            first_line = read_and_delete_first_line(dir,logtemp)  # 读取并删除第一行        
             os.remove(dir + '0_' + ID)
             if first_line == False:
                 if not workNull:
@@ -336,3 +337,4 @@ if __name__ == '__main__':
         else:
             print('@@@Other programs after reading the task list, review after 5 seconds',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
             time.sleep(5)
+            MAXthread.release()
