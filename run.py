@@ -330,7 +330,10 @@ if __name__ == '__main__':
             
             first_line = first_line.split('@')
             Wmode = first_line[0]
+            # Wmode = 'tweet_by_user_id'
+            # keyWord = first_line
             keyWord = first_line[1]
+
             print('@@@ID:', ID + ' IP: ' + ip + ' Task: ', keyWord, 'mode: ', Wmode,' thread: ',MAXthread._value,'-',MAXthreadVALUE)
             t1 = threading.Thread(target=task, args=(Wmode,keyWord,co,ip,ID)).start()
             # task(Wmode,keyWord,co,ip,ID)
