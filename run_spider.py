@@ -30,11 +30,11 @@ if __name__ == '__main__':
         'tweet_by_user_id': TweetSpiderByUserID,
         'tweet_by_keyword': TweetSpiderByKeyword,
         'comment': CommentSpider,
+        'fan': FanSpider,
+        'follow': FollowerSpider,
         'repost': RepostSpider
 
         # 'tweet_by_tweet_id': TweetSpiderByTweetID,
-        # 'fan': FanSpider,
-        # 'follow': FollowerSpider,
     }
     process.crawl(mode_to_spider[mode])
     # the script will block here until the crawling is finished

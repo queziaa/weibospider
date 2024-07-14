@@ -9,6 +9,10 @@ import json
 from scrapy import Spider
 from scrapy.http import Request
 from spiders.comment import parse_user_info
+import sys
+sys.path.append("..")
+from temp import set
+s = set.set()
 
 
 class FollowerSpider(Spider):
@@ -23,7 +27,7 @@ class FollowerSpider(Spider):
         爬虫入口
         """
         # 这里user_ids可替换成实际待采集的数据
-        user_ids = ['7576467750']
+        user_ids  =  [s['keywords']]
         for user_id in user_ids:
             url = self.base_url + f"?page=1&uid={user_id}"
             yield Request(url, callback=self.parse, meta={'user': user_id, 'page_num': 1})
@@ -33,8 +37,8 @@ class FollowerSpider(Spider):
         网页解析
         """
         data = json.loads(response.text)
-        print('************************************')
-        print(data)
+        # print('************************************')
+        # print(data)
         for user in data['users']:
             item = dict()
             item['fan_id'] = response.meta['user']
