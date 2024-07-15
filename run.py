@@ -15,6 +15,7 @@ import re
 dir = '/mnt/hgfs/Distributed/'
 encode='UTF-8'
 MAXthreadVALUE = 5
+CORETIME = 0.1
 MAXthread = threading.Semaphore(MAXthreadVALUE)
 netId = ['32309233','225310','32309245','122957','32309248','170039','32309264','06061X','32309208','018335','32309258','154615','32309237','260047','32309168','13661X','32309276','172357','32309188','03001X','32309268','040031','32309203','300032','32309244','278114','32309178','063718','32309228','202093','32309242','170015','32309186','183619','32309205','150031','32309252','243187','32309218','121250','32309206','290219','32309254','100017','32309223','026013','32309225','272967','32309211','273910','32309199','183018','32309215','130618','32309278','273624','32309204','131919','32309209','116826','32309212','160914','32309222','165672','32309271','102418','32309182','262510','32309200','27081X','32309261','166713','32309277','060535','32309265','085138','32309195','084819','32309169','237318','32309227','091214','32309210','192019','32309251','261513','32309250','101834','32309189','242473','32309247','22541X','32309275','013713','32309272','100554','32309235','02551X','32309196','146812','32309187','190616','32309197','221212','32309207','17305X','32309201','275415','32309262','174199','32309190','080140','32309243','300310','32309192','231029','32309193','252724','32309263','023910','32309226','132617','32309177','073011','32309219','047346','32309230','100626','32309231','110031','32309234','113032','32309279','296915','32309260','032822','32309236','306413','32309238','270512','32309213','034413','32309172','260599','32309273','290627','32309166','050051','32309246','30771X','32309221','104221','32309255','031130','32309176','141013','32309185','284514','32309240','203515','32309202','010010','32309171','284671','32309266','231198','32309198','300513','32309170','109391','32309253','134767','32309175','123875','32309165','220023','32309224','062532','32309229','120119','32309184','060011','32309217','015619','32309174','087819','32309269','270010','32309256','105228','32309274','256109','32309257','081213','32309180','173916','32309194','031212','32309267','143919','32309191','230075','32309259','146410','32309181','160261','32309249','106036','32309214','08131X','32309220','22071X','32309270','096625','32309179','010025','32309239','246640','32309216','141019','32309183','291614','32309173','261213','32309232','080013','32309167','112028']
 work_filesSet = []
@@ -45,7 +46,8 @@ def read_and_delete_first_line(dir,log):
     global work_filesSet
     global cache
     if cache != []:
-        return cache.pop(0)
+        # return cache.pop(0)
+        return True
 
     if work_filesSet == []:
         for item in os.listdir(dir):
@@ -55,6 +57,7 @@ def read_and_delete_first_line(dir,log):
         print("@@@No 'works' files found.",log)
         return False
     filename = random.choice(work_filesSet)
+    print("@@@Reading file", work_filesSet,filename,log)
     if not os.path.exists(filename):
         work_filesSet.remove(filename)
         print("@@@File", filename, "has been removed.",log)
@@ -89,7 +92,8 @@ def read_and_delete_first_line(dir,log):
         return False
     with open(filename, 'w',encoding=encode) as file:
         file.writelines(lines)
-    return cache.pop(0)
+    # return cache.pop(0)
+    return True
 
 
 def read_specific_line(filename, line_number):
@@ -121,11 +125,30 @@ def read_cookies(uname, f):
     s = requests.Session()
     for cookie in end:
         s.cookies.set(cookie['name'], cookie['value'])
-    response = s.get("https://weibo.com")
+    try:
+        response = s.get("https://weibo.com")
+    except :
+        return False
     response.encoding = response.apparent_encoding
     html_t = response.text
     # 检测页面是否包含微博用户名
     return html_t.find(uname) != -1
+
+# 函数 在300至200次调用后返回 1 次true 之外一直返回false
+random_true_count = -1
+def random_true():
+    global random_true_count
+    if random_true_count < 0:
+        random_true_count += 1
+        if random_true_count >= 0:
+            random_true_count = 400
+        return False
+    else:
+        random_true_count -= random.randint(1, 2)
+        if random_true_count < 0:
+            random_true_count = -1
+        return True
+
 
 def be(mode,keywords,start_time,end_time,proxy,cookie):
     code = {}
@@ -162,13 +185,10 @@ def be(mode,keywords,start_time,end_time,proxy,cookie):
         for line in iter(process.stdout.readline, b''):
             de = line.decode(encode2)
             f.write(de)
-            if 'Crawled' in de:
+            if 'wled (' in de:
                 codaHttps = codaHttps + 1
-                de = de.split('<')[0]
-                de = de.split('Crawled')[1]
-                de = de.replace(' ','')
-                de = de.replace('(','')
-                de = de.replace(')','')
+                de = de.split('led (')[1]
+                de = de.split(') <')[0]
                 if len(de) <5:
                     if de in code:
                         code[de] = code[de] + 1
@@ -280,19 +300,31 @@ if __name__ == '__main__':
     print('@@@**********************************')
     while True:
         MAXthread.acquire()
-        time.sleep(2)
-        if ping_website("weibo.com") == False:
-            print('@@@No Internet connection',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
-            connected(ID)
-            time.sleep(5)
-            MAXthread.release()
-            continue
+        time.sleep(CORETIME)
+        if random_true(): 
+            if ping_website("weibo.com") == False:
+                print('@@@No Internet connection',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
+                connected(ID)
+                time.sleep(5)
+                MAXthread.release()
+                continue
 
-        ip = get_data_from_api()
-        if ip == None:
-            MAXthread.release()
-            continue
-        
+            ip = get_data_from_api()
+            if ip == None:
+                MAXthread.release()
+                continue
+
+            if not read_cookies(co[0],co[1]):
+                if not cookieLose:
+                    print('@@@Cookie fails after 10s retry',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
+                    cookieLose = True
+                time.sleep(10)
+                co = read_specific_line(dir + "cookies.txt", index)
+                MAXthread.release()
+                continue
+            else:
+                cookieLose = False        
+
         # ipFile = find_files_starting(dir,index)
         # filedir = ID + "_" + ip
         # if ipFile != []:
@@ -318,22 +350,11 @@ if __name__ == '__main__':
         # else:
         #     ipccupy = False
         
-        if not read_cookies(co[0],co[1]):
-            if not cookieLose:
-                print('@@@Cookie fails after 10s retry',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
-                cookieLose = True
-            time.sleep(10)
-            co = read_specific_line(dir + "cookies.txt", index)
-            MAXthread.release()
-            continue
-        else:
-            cookieLose = False
+
         
         first_line = ''
         if len(cache)!= 0 or  find_files_starting(dir,0) == []:
-            if len(cache)!= 0:
-                first_line = cache.pop(0)
-            else:
+            if len(cache)== 0:
                 with open(dir + '0_' + ID, 'w') as f:
                     pass
                 logtemp = ' thread: ' + str(MAXthread._value) + '-' + str(MAXthreadVALUE)
@@ -348,6 +369,7 @@ if __name__ == '__main__':
                 else:
                     workNull = False
                 os.remove(dir + '0_' + ID)
+            first_line = cache.pop(0)
                 
             # first_line = first_line.split('@')
             # Wmode = first_line[0]
