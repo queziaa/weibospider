@@ -21,16 +21,16 @@ class JsonWriterPipeline(object):
         """
         处理item
         """
-        i = self.argv
-        if not self.file:
-            print('spider', spider)
-            print('spider.name', spider.name)
-            print('type(spider.name)', type(spider.name))
+        # i = self.argv
+        # if not self.file:
+            # print('spider', spider)
+            # print('spider.name', spider.name)
+            # print('type(spider.name)', type(spider.name))
             # file_name = i['keywords'] + "_" + i['end_time'] + "_" + i['start_time'] + "_" + i['now'] + "_" + spider.name + '.jsonl'
-            file_name = '{}_{}_{}_{}_{}.jsonl'.format(i['keywords'], i['end_time'], i['start_time'], i['now'], spider.name)
-            self.file = open(f'../output/{file_name}', 'wt', encoding='utf-8')
+            # file_name = '{}_{}_{}_{}_{}.jsonl'.format(i['keywords'], i['end_time'], i['start_time'], i['now'], spider.name)
+            # self.file = open(f'../output/{file_name}', 'wt', encoding='utf-8')
         item['crawl_time'] = int(time.time())
-        line = json.dumps(dict(item), ensure_ascii=False) + "\n"
-        self.file.write(line)
-        self.file.flush()
+        # line = json.dumps(dict(item), ensure_ascii=False) + "\n"
+        # self.file.write(line)
+        # self.file.flush()
         return item

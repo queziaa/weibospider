@@ -28,7 +28,7 @@ class CommentSpider(Spider):
         爬虫入口
         """
         # 这里tweet_ids可替换成实际待采集的数据
-        print('sys.argv', sys.argv)
+        # print('sys.argv', sys.argv)
 
         tweet_ids = [s['keywords']]
         for tweet_id in tweet_ids:
@@ -44,8 +44,8 @@ class CommentSpider(Spider):
         网页解析
         """
         data = json.loads(response.text)
-        print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', data)
-        print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', response.text)
+        # print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', data)
+        # print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', response.text)
         for comment_info in data['data']:
             item = self.parse_comment(comment_info)
             yield item
