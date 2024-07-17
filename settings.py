@@ -8,11 +8,11 @@ NEWSPIDER_MODULE = 'spiders'
 ROBOTSTXT_OBEY = False
 
 
-from temp import set
+import sys
 
 DEFAULT_REQUEST_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:61.0) Gecko/20100101 Firefox/61.0',
-    'Cookie': set.set()['cookie']
+    'Cookie': eval(sys.argv[2])['cookie']
 }
 
 CONCURRENT_REQUESTS = 16

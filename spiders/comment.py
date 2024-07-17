@@ -10,9 +10,11 @@ from scrapy import Spider
 from scrapy.http import Request
 from spiders.common import parse_user_info, parse_time, url_to_mid
 import sys
-sys.path.append("..")
-from temp import set
-s = set.set()
+s = eval(sys.argv[2])
+
+
+
+
 import logging
 
 class CommentSpider(Spider):
@@ -26,6 +28,8 @@ class CommentSpider(Spider):
         爬虫入口
         """
         # 这里tweet_ids可替换成实际待采集的数据
+        print('sys.argv', sys.argv)
+
         tweet_ids = [s['keywords']]
         for tweet_id in tweet_ids:
             mid = url_to_mid(tweet_id)
@@ -40,6 +44,8 @@ class CommentSpider(Spider):
         网页解析
         """
         data = json.loads(response.text)
+        print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', data)
+        print('!!!!!!!!!!!!!!!!!!!!data!!!!!!!!!!!!!!!!!!', response.text)
         for comment_info in data['data']:
             item = self.parse_comment(comment_info)
             yield item
@@ -56,7 +62,10 @@ class CommentSpider(Spider):
         item['created_at'] = parse_time(data['created_at'])
         item['_id'] = data['id']
         item['like_counts'] = data['like_counts']
-        item['ip_location'] = data['source']
+        if 'source' in data:
+            item['ip_location'] = data['source']
+        else:
+            item['ip_location'] = None
         item['content'] = data['text_raw']
         item['comment_user'] = parse_user_info(data['user'])
         return item

@@ -10,9 +10,7 @@ from scrapy import Spider
 from scrapy.http import Request
 from spiders.common import parse_tweet_info, parse_long_tweet
 import sys
-sys.path.append("..")
-from temp import set
-s = set.set()
+s = eval(sys.argv[2])
 import time
 import logging
 

@@ -10,9 +10,7 @@ from scrapy import Spider
 from scrapy.http import Request
 from spiders.common import parse_tweet_info, url_to_mid
 import sys
-sys.path.append("..")
-from temp import set
-s = set.set()
+s = eval(sys.argv[2])
 
 class RepostSpider(Spider):
     """
@@ -24,6 +22,7 @@ class RepostSpider(Spider):
         """
         爬虫入口
         """
+
         # 这里tweet_ids可替换成实际待采集的数据
         tweet_ids = [s['keywords']]
         for tweet_id in tweet_ids:

@@ -10,9 +10,7 @@ from scrapy import Spider
 from scrapy.http import Request
 from spiders.comment import parse_user_info
 import sys
-sys.path.append("..")
-from temp import set
-s = set.set()
+s = eval(sys.argv[2])
 
 class FanSpider(Spider):
     """

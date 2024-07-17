@@ -10,9 +10,7 @@ import re
 from scrapy import Spider, Request
 from spiders.common import parse_tweet_info, parse_long_tweet
 import sys
-sys.path.append("..")
-from temp import set
-s = set.set()
+s = eval(sys.argv[2])
 
 
 class TweetSpiderByKeyword(Spider):

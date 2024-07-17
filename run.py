@@ -82,9 +82,8 @@ def read_and_delete_first_line(dir,log):
         lines = file.readlines()
     try:
         # first_line = lines.pop(0).strip()  # read and remove the first line
-        # 一次读取十行 
         cache = []
-        for i in range(10):
+        for i in range(30):
             if len(lines) == 0:
                 break
             cache.append(lines.pop(0).strip())
@@ -135,7 +134,7 @@ def read_cookies(uname, f):
     return html_t.find(uname) != -1
 
 # 函数 在300至200次调用后返回 1 次true 之外一直返回false
-random_true_count = -1
+random_true_count = (2*MAXthreadVALUE - 1) * -1
 def random_true():
     global random_true_count
     if random_true_count < 0:
@@ -146,35 +145,36 @@ def random_true():
     else:
         random_true_count -= random.randint(1, 2)
         if random_true_count < 0:
-            random_true_count = -1
+            random_true_count = (2*MAXthreadVALUE - 1) * -1
         return True
 
 
 def be(mode,keywords,start_time,end_time,proxy,cookie):
     code = {}
     codaHttps = 0
-    text = '''def set():
-    return{'''
-    filename = "./temp/set.py"
+    # text = '''def set():
+    # return{'''
+    text = '{'
+    # filename = "./temp/set.py"
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     text = text +  ''''mode':'{}','keywords':'{}','end_time':'{}','start_time':'{}','now':'{}','proxy':'{}','cookie':'{}' '''.format(mode,keywords,end_time,start_time,now,proxy,cookie) + '}'
-    if os.path.exists(filename):
-        Fmode = 'w'  # set mode to write to existing file
-    else:
-        Fmode = 'x'  # set mode to create new file
-    with open(filename, Fmode ,encoding=encode) as f:
-        f.write(text)
+    # if os.path.exists(filename):
+        # Fmode = 'w'  # set mode to write to existing file
+    # else:
+        # Fmode = 'x'  # set mode to create new file
+    # with open(filename, Fmode ,encoding=encode) as f:
+        # f.write(text)
     
     filename= dir + "output/{}_{}_{}_{}_{}.txt".format(keywords,end_time,start_time,now,mode)
-    text = mode+" "+keywords+" "+start_time+" "+end_time+" "+now+" "+proxy+" "+cookie
+    outlog = mode+" "+keywords+" "+start_time+" "+end_time+" "+now+" "+proxy+" "+cookie
     if os.path.exists(filename):
         Fmode = 'w'  # set mode to write to existing file
     else:
         Fmode = 'x'  # set mode to create new file
     with open(filename, Fmode,encoding=encode) as f:
-        f.write(text)
+        f.write(outlog)
     # 定义要运行的命令
-    command = ['python3', 'run_spider.py']
+    command = ['python3', 'run_spider.py', keywords,text]
 ####################################################################################
     # 打开一个文件来保存输出
     with open(filename.replace('txt','log'), 'w',encoding=encode) as f:
@@ -307,23 +307,24 @@ if __name__ == '__main__':
                 connected(ID)
                 time.sleep(5)
                 MAXthread.release()
+                random_true_count = (2*MAXthreadVALUE - 1) * -1
                 continue
-
             ip = get_data_from_api()
             if ip == None:
                 MAXthread.release()
+                random_true_count = (2*MAXthreadVALUE - 1) * -1
                 continue
 
-            if not read_cookies(co[0],co[1]):
-                if not cookieLose:
-                    print('@@@Cookie fails after 10s retry',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
-                    cookieLose = True
-                time.sleep(10)
-                co = read_specific_line(dir + "cookies.txt", index)
-                MAXthread.release()
-                continue
-            else:
-                cookieLose = False        
+        if not read_cookies(co[0],co[1]):
+            if not cookieLose:
+                print('@@@Cookie fails after 10s retry',' thread: ',MAXthread._value,'-',MAXthreadVALUE)
+                cookieLose = True
+            time.sleep(10)
+            co = read_specific_line(dir + "cookies.txt", index)
+            MAXthread.release()
+            continue
+        else:
+            cookieLose = False        
 
         # ipFile = find_files_starting(dir,index)
         # filedir = ID + "_" + ip
@@ -373,7 +374,7 @@ if __name__ == '__main__':
                 
             # first_line = first_line.split('@')
             # Wmode = first_line[0]
-            Wmode = 'fan'
+            Wmode = 'comment'
             keyWord = first_line
             # keyWord = first_line[1]
 

@@ -16,12 +16,12 @@ from spiders.follower import FollowerSpider
 from spiders.user import UserSpider
 from spiders.fan import FanSpider
 from spiders.repost import RepostSpider
+import sys
 
-from temp import set
+SET = eval(sys.argv[2])
 
 if __name__ == '__main__':
 
-    mode = set.set()['mode']
     os.environ['SCRAPY_SETTINGS_MODULE'] = 'settings'
     settings = get_project_settings()
     process = CrawlerProcess(settings)
@@ -36,6 +36,5 @@ if __name__ == '__main__':
 
         # 'tweet_by_tweet_id': TweetSpiderByTweetID,
     }
-    process.crawl(mode_to_spider[mode])
-    # the script will block here until the crawling is finished
+    process.crawl(mode_to_spider[SET['mode']],param1=sys.argv[1],param2=sys.argv[2])
     process.start()
