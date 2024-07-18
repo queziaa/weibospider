@@ -145,12 +145,12 @@ def random_true():
         random_true_count += 1
         if random_true_count >= 0:
             random_true_count = 400
-        return False
+        return True
     else:
         random_true_count -= random.randint(1, 2)
         if random_true_count < 0:
             random_true_count = (2*MAXthreadVALUE - 1) * -1
-        return True
+        return False
 
 
 def be(mode,keywords,start_time,end_time,proxy,cookie):
@@ -401,8 +401,9 @@ if __name__ == '__main__':
                 
             # first_line = first_line.split('@')
             # Wmode = first_line[0]
-            Wmode = 'follow'
+            # Wmode = 'follow'
             # Wmode = 'comment'
+            Wmode = 'repost'
             keyWord = first_line
             # keyWord = first_line[1]
 
