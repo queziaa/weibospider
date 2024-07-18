@@ -36,5 +36,5 @@ if __name__ == '__main__':
 
         # 'tweet_by_tweet_id': TweetSpiderByTweetID,
     }
-    process.crawl(mode_to_spider[SET['mode']],param1=sys.argv[1],param2=sys.argv[2])
+    process.crawl(mode_to_spider[SET['mode']],param1=sys.argv[1],param2=sys.argv[2],param3=sys.argv[3])
     process.start()
