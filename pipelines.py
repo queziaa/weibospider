@@ -13,7 +13,7 @@ class JsonWriterPipeline(object):
     def __init__(self):
         self.file = None
         self.argv = eval(sys.argv[2])
-        self.dirs = sys.argv[3]
+        self.dirs = sys.argv[3] + 'output/'
 
         if not os.path.exists(self.dirs):
             os.mkdir(self.dirs)
